@@ -1,0 +1,21 @@
+package com.vatek.hrmtool.dto.ProjectDto;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.vatek.hrmtool.enumeration.ProjectState;
+import lombok.Data;
+
+import java.time.LocalDate;
+import java.util.Set;
+
+@Data
+public class ProjectDetailDto {
+    private Long id;
+    private String projectName, clientName;
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate startDate;
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate endDate;
+    private ProjectState projectState;
+    private String projectManager;
+    private Set<String> projectMembers;
+}
