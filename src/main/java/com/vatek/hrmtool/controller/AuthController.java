@@ -1,6 +1,6 @@
 package com.vatek.hrmtool.controller;
 
-import com.vatek.hrmtool.dto.AuthJwtResponse;
+import com.vatek.hrmtool.dto.RefreshTokenResponse;
 import com.vatek.hrmtool.dto.LoginResponse;
 import com.vatek.hrmtool.dto.RefreshTokenRequest;
 import com.vatek.hrmtool.dto.UserDto.LoginDto;
@@ -12,11 +12,9 @@ import com.vatek.hrmtool.respository.old.UserOldRepository;
 import com.vatek.hrmtool.service.AuthService;
 import com.vatek.hrmtool.service.serviceImpl.UserOldPrinciple;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,9 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -76,8 +71,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "Refresh token is required"));
         }
-        AuthJwtResponse authJwtResponse = authService.refresh(request.getRefreshToken());
-        return ResponseEntity.ok(authJwtResponse);
+        RefreshTokenResponse refreshTokenResponse = authService.refresh(request.getRefreshToken());
+        return ResponseEntity.ok(refreshTokenResponse);
     }
 
     @PostMapping("/logout")

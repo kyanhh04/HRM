@@ -1,6 +1,6 @@
 package com.vatek.hrmtool.service.serviceImpl;
 
-import com.vatek.hrmtool.dto.AuthJwtResponse;
+import com.vatek.hrmtool.dto.RefreshTokenResponse;
 import com.vatek.hrmtool.dto.LoginResponse;
 import com.vatek.hrmtool.entity.Config;
 import com.vatek.hrmtool.entity.UserOld;
@@ -90,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthJwtResponse refresh(String refreshToken) {
+    public RefreshTokenResponse refresh(String refreshToken) {
         if (!jwtProvider.validateJwtToken(refreshToken)) {
             throw new IllegalArgumentException("Invalid or expired refresh token");
         }
@@ -106,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRefreshToken(newRefreshToken);
         userOldRepository.save(user);
         Long exp = jwtProvider.getRemainTimeFromJwtToken(newAccessToken);
-        return new AuthJwtResponse(
+        return new RefreshTokenResponse(
                 newAccessToken,
                 newRefreshToken,
                 user.getId(),
