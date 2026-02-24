@@ -65,7 +65,7 @@ public class AuthController {
         return ResponseEntity.ok(loginResponse);
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/refresh-access-token")
     public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request) {
         if (request.getRefreshToken() == null || request.getRefreshToken().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

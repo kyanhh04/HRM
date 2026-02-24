@@ -102,13 +102,10 @@ public class AuthServiceImpl implements AuthService {
         }
         List<String> positions = getPositions(user);
         String newAccessToken = jwtProvider.generateTokenFromUserIdAndRole(user.getId(), positions);
-        String newRefreshToken = jwtProvider.generateTokenFromUserIdAndRole(user.getId(), positions, 604800);
-        user.setRefreshToken(newRefreshToken);
-        userOldRepository.save(user);
         Long exp = jwtProvider.getRemainTimeFromJwtToken(newAccessToken);
         return new RefreshTokenResponse(
                 newAccessToken,
-                newRefreshToken,
+                refreshToken,
                 user.getId(),
                 positions,
                 exp
