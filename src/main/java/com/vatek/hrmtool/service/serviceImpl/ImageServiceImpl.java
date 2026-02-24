@@ -55,10 +55,10 @@ public class ImageServiceImpl implements ImageService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to upload to S3");
             }
             String s3Location = (String) uploadResult.get("Location");
-            String s3Url = s3Location + "?" + System.currentTimeMillis();
             Image image = new Image();
             image.setName(file.getOriginalFilename());
-            image.setSrc(s3Url);
+            image.setSrc(s3Location);
+            image.setCreatedBy(userId);
             return imageRepository.save(image);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error reading file: " + e.getMessage());

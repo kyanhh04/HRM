@@ -35,7 +35,9 @@
  import org.springframework.web.server.ResponseStatusException;
  import com.vatek.hrmtool.jwt.JwtProvider;
 
+ import java.time.LocalDate;
  import java.time.LocalDateTime;
+ import java.util.ArrayList;
  import java.util.List;
  import java.util.stream.Collectors;
 
@@ -61,10 +63,6 @@
   private JwtProvider jwtProvider;
 
 
-  @Override
-   public void updateRefreshToken(Long userId, String refreshToken){
-
-   }
 
    public UserOld create(CreateUserRequest request) {
     boolean existingByUsername = userOldRepository.findByUsername(request.getUsername()).isPresent();
@@ -341,7 +339,7 @@
        return new UserPaginationResponse(data, total, paginateTotal);
    }
 
-   private UserResponseDto mapToUserResponseDto(UserOld user) {
+   public UserResponseDto mapToUserResponseDto(UserOld user) {
        UserResponseDto dto = new UserResponseDto();
        dto.setId(user.getId());
        dto.setFullName(user.getFullName());
@@ -393,27 +391,21 @@
            .filter(config -> "POSITION".equals(config.getKey()) && 
                    ("POSITION_ADMIN".equals(config.getValue()) || "POSITION_HR".equals(config.getValue())))
            .toList();
-       
        if (adminHrPositions.isEmpty()) {
-           throw new IllegalArgumentException("Position not found");
+           throw new IllegalArgumentException("ADMIN or HR position not found");
        }
-       
        List<String> positionIds = adminHrPositions.stream()
            .map(Config::getId)
            .collect(Collectors.toList());
-       
        Pageable pageable = PageRequest.of(
-           params.getOffset() != null ? params.getOffset() : 0,
-           params.getLimit() != null ? params.getLimit() : 10,
+           params.getOffset(),
+           params.getLimit(),
            Sort.by("name").ascending()
        );
-       
        long total = userOldRepository.countByIsDeletedFalse();
-       
        Page<UserOld> page;
        if (params.getName() != null && !params.getName().isEmpty()) {
-           page = userOldRepository.findByNameOrUsernameAndPositionsAndIsDeletedFalse(
-               params.getName(), 
+           page = userOldRepository.findByNameAndPositionsAndIsDeletedFalse(
                params.getName(),
                positionIds, 
                pageable
@@ -448,7 +440,7 @@
        return image.getSrc();
    }
 
-   public UserOld update(String id, UpdateUserDto updateUserDto) {
+   public UserResponseDto update(String id, UpdateUserDto updateUserDto) {
        UserOld user = userOldRepository.findByIdAndIsDeletedFalse(id)
            .orElseThrow(() -> new ResourceNotFoundException("Cannot find user with id " + id));
        if (updateUserDto.getFullName() != null && !updateUserDto.getFullName().isEmpty()) {
@@ -492,10 +484,11 @@
            java.util.List<Config> positions = configRepository.findAllById(updateUserDto.getPositions());
            user.setPositions(positions);
        }
-       return userOldRepository.save(user);
+       UserOld updatedUser = userOldRepository.save(user);
+       return mapToUserResponseDto(updatedUser);
    }
 
-   public UserOld changePassword(String userId, UpdatePasswordDto updatePasswordDto) {
+   public UserResponseDto changePassword(String userId, UpdatePasswordDto updatePasswordDto) {
        UserOld user = userOldRepository.findByIdAndIsDeletedFalse(userId)
            .orElseThrow(() -> new ResourceNotFoundException("Cannot find user with id " + userId));
        if (!passwordEncoder.matches(updatePasswordDto.getCurrentPassword(), user.getPasswordHash())) {
@@ -503,7 +496,8 @@
        }
        String hashedPassword = passwordEncoder.encode(updatePasswordDto.getPassword());
        user.setPasswordHash(hashedPassword);
-       return userOldRepository.save(user);
+       UserOld updatedUser = userOldRepository.save(user);
+       return mapToUserResponseDto(updatedUser);
    }
 
    public UserOld remove(String id) {
@@ -526,21 +520,17 @@
                }
            }
        }
-       
        currentUser.setIsDeleted(true);
        return userOldRepository.save(currentUser);
    }
 
-   public List<UserResponseDto> getHappyBirthday() {
-       int today = java.time.LocalDate.now().getDayOfMonth();
-       int currentMonth = java.time.LocalDate.now().getMonthValue();
-       
+   public List<UserResponseDto> getBirthday() {
+       int today = LocalDate.now().getDayOfMonth();
+       int currentMonth = LocalDate.now().getMonthValue();
        List<UserOld> users = userOldRepository.findAll().stream()
            .filter(u -> !u.getIsDeleted())
            .toList();
-       
-       List<UserResponseDto> birthdayUsers = new java.util.ArrayList<>();
-       
+       List<UserResponseDto> birthdayUsers = new ArrayList<>();
        for (UserOld user : users) {
            if (user.getDateOfBirth() != null) {
                if (user.getDateOfBirth().getDayOfMonth() == today && 
@@ -549,18 +539,16 @@
                }
            }
        }
-       
        return birthdayUsers;
    }
 
-   public void confirmResetPassword(ResetPassword resetPassword) {
+   public void resetPassword(ResetPassword resetPassword) {
        String userId = jwtProvider.getUserIdFromJwtToken(resetPassword.getToken());
        if (userId == null || userId.isEmpty()) {
            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token");
        }
        UserOld user = userOldRepository.findByIdAndIsDeletedFalse(userId)
            .orElseThrow(() -> new ResourceNotFoundException("Cannot find user with id " + userId));
-       
        String hashedPassword = passwordEncoder.encode(resetPassword.getNewPassword());
        user.setPasswordHash(hashedPassword);
        userOldRepository.save(user);

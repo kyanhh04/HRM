@@ -21,7 +21,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class DateTimeEntity {
+public class    DateTimeEntity {
     @Column(nullable = false, updatable = false)
     @CreatedDate
     private Instant createdTime;

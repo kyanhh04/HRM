@@ -15,28 +15,22 @@ public interface UserOldRepository extends JpaRepository<UserOld, String>, JpaSp
     Optional<UserOld> findByEmail(String email);
     Optional<UserOld> findByUsername(String username);
     UserOld findByUsernameOrEmail(String username, String email);
-    Optional<UserOld> findByEmailAndIsDeletedFalse(String email);
-    Optional<UserOld> findByUsernameAndIsDeletedFalse(String username);
     Optional<UserOld> findByIdAndIsDeletedFalse(String id);
     long countByIsDeletedFalse();
     @Query("SELECT DISTINCT u FROM UserOld u " +
            "LEFT JOIN u.level l " +
-           "LEFT JOIN u.positions p " +
            "WHERE u.isDeleted = false " +
            "AND (:level IS NULL OR l.value = :level) " +
            "AND (:name IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) " +
            "ORDER BY u.name ASC")
-    Page<UserOld> findAllWithFilters(
-        @Param("level") String level,
-        @Param("name") String name,
-        Pageable pageable);
+    Page<UserOld> findAllWithFilters(String level, String name, Pageable pageable);
 
     @Query("SELECT DISTINCT u FROM UserOld u " +
            "LEFT JOIN u.level l " +
            "LEFT JOIN u.positions p " +
            "WHERE u.isDeleted = false " +
            "AND (:level IS NULL OR l.value = :level) " +
-           "AND (CAST(:positions AS string) IS NULL OR p.value IN :positions) " +
+           "AND (:positions IS NULL OR p.value IN :positions) " +
            "AND (:name IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) " +
            "ORDER BY u.name ASC")
     Page<UserOld> findAllWithFiltersAndPositions(
@@ -58,11 +52,10 @@ public interface UserOldRepository extends JpaRepository<UserOld, String>, JpaSp
            "LEFT JOIN u.positions p " +
            "WHERE u.isDeleted = false " +
            "AND p.id IN :positionIds " +
-           "AND (LOWER(u.fullName) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%'))) " +
+           "AND (LOWER(u.fullName) LIKE LOWER(CONCAT('%', :name, '%'))) " +
            "ORDER BY u.name ASC")
-    Page<UserOld> findByNameOrUsernameAndPositionsAndIsDeletedFalse(
+    Page<UserOld> findByNameAndPositionsAndIsDeletedFalse(
         @Param("name") String name,
-        @Param("username") String username,
         @Param("positionIds") List<String> positionIds,
         Pageable pageable);
 }

@@ -70,12 +70,9 @@ public class UserController {
         params.setOffset(offset);
         params.setLimit(limit);
         params.setName(name);
-        try {
-            UserPaginationResponse response = userService.findOnboardingMentor(params);
-            return ResponseEntity.ok(response);
-        } catch (Exception err) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, err.getMessage());
-        }
+        UserPaginationResponse response = userService.findOnboardingMentor(params);
+        return ResponseEntity.ok(response);
+
     }
     @GetMapping("/get-own-profile")
     public ResponseEntity<UserResponseDto> findOwnProfile() {
@@ -101,7 +98,7 @@ public class UserController {
         return ResponseEntity.ok(user);
         
     }
-    @PostMapping("/change-avatar/{id}")
+    @PostMapping(value = "/change-avatar/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> changeAvatar(@PathVariable String id, @RequestParam("avatar") MultipartFile file) {
         String avatarFileName = userService.changeAvatar(id, file);
         return ResponseEntity.ok(
@@ -110,34 +107,25 @@ public class UserController {
     }
 //    @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR')")
     @PatchMapping("/update-user/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody @Valid UpdateUserDto updateUserDto) {
-        UserOld updatedUser = userService.update(id, updateUserDto);
-        return ResponseEntity.ok(Map.of(
-            "userID", id,
-            "updatedData", updateUserDto
-        ));
+    public ResponseEntity<UserResponseDto> updateUser(@PathVariable String id, @RequestBody @Valid UpdateUserDto updateUserDto) {
+        UserResponseDto responseDto = userService.update(id, updateUserDto);
+        return ResponseEntity.ok(responseDto);
     }
     @PatchMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody @Valid UpdatePasswordDto updatePasswordDto) {
+    public ResponseEntity<UserResponseDto> changePassword(@RequestBody @Valid UpdatePasswordDto updatePasswordDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserOldPrinciple userPrinciple = (UserOldPrinciple) authentication.getPrincipal();
         String userId = userPrinciple.getId();
-        UserOld updatedUser = userService.changePassword(userId, updatePasswordDto);
-        return ResponseEntity.ok(Map.of(
-            "userID", userId,
-            "updatePasswordDto", updatePasswordDto
-        ));
+        UserResponseDto responseDto = userService.changePassword(userId, updatePasswordDto);
+        return ResponseEntity.ok(responseDto);
     }
     @PatchMapping("/update-profile")
-    public ResponseEntity<?> updateProfile(@RequestBody @Valid UpdateUserDto updateUserDto) {
+    public ResponseEntity<UserResponseDto> updateProfile(@RequestBody @Valid UpdateUserDto updateUserDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserOldPrinciple userPrinciple = (UserOldPrinciple) authentication.getPrincipal();
         String userId = userPrinciple.getId();
-        UserOld updatedUser = userService.update(userId, updateUserDto);
-        return ResponseEntity.ok(Map.of(
-            "userID", userId,
-            "updatedData", updateUserDto
-        ));
+        UserResponseDto responseDto = userService.update(userId, updateUserDto);
+        return ResponseEntity.ok(responseDto);
     }
     @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR')")
     @DeleteMapping("/delete/{id}")
@@ -150,14 +138,14 @@ public class UserController {
         ));
     }
     @GetMapping("/get-birthday")
-    public ResponseEntity<?> getHappyBirthday() {
-        List<UserResponseDto> users = userService.getHappyBirthday();
+    public ResponseEntity<?> getBirthday() {
+        List<UserResponseDto> users = userService.getBirthday();
         return ResponseEntity.ok(users);
     }
 
     @PatchMapping("/reset_password")
     public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPassword resetPassword) {
-        userService.confirmResetPassword(resetPassword);
+        userService.resetPassword(resetPassword);
         return ResponseEntity.ok("Password reset successfully");
     }
     // // Code cũ - dùng Role ADMIN

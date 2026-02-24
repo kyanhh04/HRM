@@ -12,15 +12,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface UserService {
-    void updateRefreshToken(Long userId, String refreshToken);
     UserOld create(CreateUserRequest userRequest);
     UserPaginationResponse findAll(GetUsersDto params);
     UserPaginationResponse findOnboardingMentor(GetUsersDto params);
     UserResponseDto findOneWithoutAuth(String id);
     String changeAvatar(String userId, MultipartFile file);
-    UserOld update(String id, UpdateUserDto updateUserDto);
-    UserOld changePassword(String userId, UpdatePasswordDto updatePasswordDto);
+    UserResponseDto update(String id, UpdateUserDto updateUserDto);
+    UserResponseDto changePassword(String userId, UpdatePasswordDto updatePasswordDto);
     UserOld remove(String id);
-    List<UserResponseDto> getHappyBirthday();
-    void confirmResetPassword(ResetPassword resetPassword);
+    List<UserResponseDto> getBirthday();
+    void resetPassword(ResetPassword resetPassword);
 }
