@@ -53,10 +53,8 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
                 return;
             }
             String userId = tokenProvider.getUserIdFromJwtToken(jwt);
-            // // Code cũ - dùng UserRepository
             // UserEntity user = userRepository.findUserEntityById(userId)
             //         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
-            // Code mới - dùng UserOldRepository
             UserOld user = userOldRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
             UserOldPrinciple userDetails = (UserOldPrinciple) userDetailsService.loadUserByUsername(user.getEmail());

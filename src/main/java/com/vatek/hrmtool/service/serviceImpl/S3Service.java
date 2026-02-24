@@ -32,7 +32,6 @@ public class S3Service {
         if (amazonS3 == null) {
             return uploadLocal(fileBytes, userId, filename);
         }
-        
         try {
             String s3Folder = env.getProperty("aws.s3.folder");
             if (s3Folder == null || s3Folder.isEmpty()) {
@@ -69,7 +68,7 @@ public class S3Service {
                 "Error uploading file to S3: " + e.getMessage());
         }
     }
-    
+
     private Map<String, Object> uploadLocal(byte[] fileBytes, String userId, String filename) {
         try {
             String uniqueFilename = System.currentTimeMillis() + "_" + filename;
@@ -88,14 +87,14 @@ public class S3Service {
             }
             Path filePath = userPath.resolve(uniqueFilename);
             Files.write(filePath, fileBytes);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("Location", "/uploads/" + objectKey);
             response.put("Key", objectKey);
-            
+
             return response;
         } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Error uploading file locally: " + ex.getMessage());
         }
     }

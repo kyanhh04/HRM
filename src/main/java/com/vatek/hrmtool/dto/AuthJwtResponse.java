@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 public class AuthJwtResponse {
     private String access_token;
+    private String refresh_token;
     private String user_id;
     private List<String> positions;
     private long exp;

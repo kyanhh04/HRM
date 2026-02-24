@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class ImageServiceImpl implements ImageService {
     private Environment env;
     
     @Override
-    public Image                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            uploadAndCreate(MultipartFile file, String userId) {
+    public Image uploadAndCreate(MultipartFile file, String userId) {
         if (!checkImageTypeIsValid(file)) {
             throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Invalid image type");
         }
@@ -59,11 +60,8 @@ public class ImageServiceImpl implements ImageService {
             image.setName(file.getOriginalFilename());
             image.setSrc(s3Url);
             return imageRepository.save(image);
-        } catch (ResponseStatusException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "Failed to upload file: " + ex.getMessage());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error reading file: " + e.getMessage());
         }
     }
     

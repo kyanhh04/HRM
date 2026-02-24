@@ -63,15 +63,11 @@ public class JwtProvider {
     }
 
     public String generateTokenFromUserIdAndRole(String id, Collection<String> positions, int expiration) {
-
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-
-
         Map<String,?> claims = Map.of(
                 "userId",id,
                 "positions",positions
         );
-
         return Jwts
                 .builder()
                 .claims(claims)

@@ -9,6 +9,7 @@ import com.vatek.hrmtool.dto.UserDto.UpdateUserDto;
 import com.vatek.hrmtool.dto.UserDto.ResetPassword;
 import com.vatek.hrmtool.dto.UserDto.UserPaginationResponse;
 import com.vatek.hrmtool.dto.UserDto.UserResponseDto;
+import com.vatek.hrmtool.dto.UserDto.UserSignUpResponse;
 //import com.vatek.hrmtool.dto.UserDto.UserUpdateDto;
 //import com.vatek.hrmtool.entity.neww.UserEntity;
 //import com.vatek.hrmtool.enumeration.SortFieldName;
@@ -39,9 +40,10 @@ public class UserController {
     @Autowired
     private UserService userService;
     @PostMapping("/sign-up")
-    public ResponseEntity<UserOld> createUser(@RequestBody CreateUserRequest userRequest) {
+    public ResponseEntity<UserSignUpResponse> createUser(@RequestBody CreateUserRequest userRequest) {
         UserOld user = userService.create(userRequest);
-        return ResponseEntity.ok(user);
+        UserSignUpResponse response = mapToSignUpResponse(user);
+        return ResponseEntity.ok(response);
     }
     @GetMapping("/get-all-users")
     public ResponseEntity<UserPaginationResponse> getAllUsers(
@@ -230,4 +232,21 @@ public class UserController {
 //        Page<UserEntity> allEmployee = userService.listEmployee(keyword, direction, sortBy.getField(), page, size);
 //        return ResponseEntity.ok(allEmployee);
 //    }
+
+    private UserSignUpResponse mapToSignUpResponse(UserOld user) {
+        UserSignUpResponse response = new UserSignUpResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setFullName(user.getFullName());
+        response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
+        response.setCitizenID(user.getCitizenID());
+        response.setAddress(user.getAddress());
+        response.setDateOfBirth(user.getDateOfBirth());
+        response.setOnboardingDate(user.getOnboardingDate());
+        response.setStatus(user.getStatus());
+        response.setCreatedTime(user.getCreatedTime());
+        response.setModifiedTime(user.getModifiedTime());
+        return response;
+    }
 }

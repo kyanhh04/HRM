@@ -1,6 +1,7 @@
 package com.vatek.hrmtool.service.serviceImpl;
 
 import com.vatek.hrmtool.dto.AuthJwtResponse;
+import com.vatek.hrmtool.dto.LoginResponse;
 import com.vatek.hrmtool.entity.Config;
 import com.vatek.hrmtool.entity.UserOld;
 import com.vatek.hrmtool.entity.ProjectOld;
@@ -28,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private JwtProvider jwtProvider;
 
     @Override
-    public AuthJwtResponse login(UserOld user, Authentication authentication){
+    public LoginResponse login(UserOld user, Authentication authentication){
         if (user == null) {
             throw new IllegalArgumentException("User cannot be null");
         }
@@ -46,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
         userOldRepository.save(user);
         List<String> positions = getPositions(user);
         Long exp = jwtProvider.getRemainTimeFromJwtToken(access_token);
-        return new AuthJwtResponse(
+        return new LoginResponse(
                 access_token,
                 user.getId(),
                 positions,
@@ -87,5 +88,68 @@ public class AuthServiceImpl implements AuthService {
             positions.add(config.getValue());
         }
         return positions;
+    }
+
+    @Override
+    public AuthJwtResponse refresh(String refreshToken) {
+        // Validate refresh token
+        if (!jwtProvider.validateJwtToken(refreshToken)) {
+            throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
+
+        // Get userId from refresh token
+        String userId = jwtProvider.getUserIdFromJwtToken(refreshToken);
+
+        // Find user
+        UserOld user = userOldRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Check if stored refresh token matches
+        if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token doesn't match");
+        }
+
+        // Get user positions
+        List<String> positions = getPositions(user);
+
+        // Generate new access token (24 hours)
+        String newAccessToken = jwtProvider.generateTokenFromUserIdAndRole(user.getId(), positions);
+
+        // Generate new refresh token (7 days)
+        String newRefreshToken = jwtProvider.generateTokenFromUserIdAndRole(user.getId(), positions, 604800);
+
+        // Update user with new refresh token
+        user.setRefreshToken(newRefreshToken);
+        userOldRepository.save(user);
+
+        // Return response
+        Long exp = jwtProvider.getRemainTimeFromJwtToken(newAccessToken);
+        return new AuthJwtResponse(
+                newAccessToken,
+                newRefreshToken,
+                user.getId(),
+                positions,
+                exp
+        );
+    }
+
+    @Override
+    public void logout(String userId) {
+        UserOld user = userOldRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setRefreshToken(null);
+        userOldRepository.save(user);
+    }
+
+    @Override
+    public boolean verifyUserStatus(String userId) {
+        UserOld user = userOldRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        
+        if (user.getIsDeleted() || user.getStatus() == null || 
+            user.getStatus().equals(StatusUser.DEACTIVATED.getValue())) {
+            return false;
+        }
+        return true;
     }
 }

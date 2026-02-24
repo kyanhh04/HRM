@@ -60,7 +60,6 @@
   @Autowired
   private JwtProvider jwtProvider;
 
-  private static final String DEFAULT_PASSWORD = "123456";
 
   @Override
    public void updateRefreshToken(Long userId, String refreshToken){
@@ -73,7 +72,8 @@
     if (existingByUsername || existingByEmail) {
      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username or email already exists");
     }
-    String hashedPassword = passwordEncoder.encode(DEFAULT_PASSWORD);
+    UserOld onboardingMentor = userOldRepository.findById(request.getOnboardingMentor()).orElseThrow(() -> new ResourceNotFoundException("Cannot find user with id"));
+    String hashedPassword = passwordEncoder.encode(request.getPassword());
     String[] nameParts = request.getFullName().split(" ");
     String name = nameParts[nameParts.length - 1];
     UserOld newUser = new UserOld();
@@ -83,9 +83,13 @@
     newUser.setName(name);
     newUser.setPasswordHash(hashedPassword);
     newUser.setCreatedBy("0");
-//    newUser.setStatus("INACTIVE");
     newUser.setDateCreated(LocalDateTime.now());
-//    newUser.setIsDeleted(false);
+    newUser.setAddress(request.getAddress());
+    newUser.setDateOfBirth(request.getDateOfBirth());
+    newUser.setOnboardingDate(request.getOnboardingDate());
+    newUser.setPhone(request.getPhone());
+    newUser.setCitizenID(request.getCitizenID());
+    newUser.setOnboardingMentor(onboardingMentor);
     if(request.getLevelId() != null && !request.getLevelId().isEmpty()){
         configRepository.findById(request.getLevelId()).ifPresent(newUser::setLevel);
     }
@@ -435,7 +439,7 @@
        return mapToUserResponseDto(user);
    }
 
-   public String changeAvatar(String userId, MultipartFile file) {
+   public String changeAvatar(String userId, MultipartFile file){
        UserOld user = userOldRepository.findByIdAndIsDeletedFalse(userId)
            .orElseThrow(() -> new ResourceNotFoundException("Cannot find user with id " + userId));
        Image image = imageService.uploadAndCreate(file, userId);
@@ -504,7 +508,7 @@
 
    public UserOld remove(String id) {
        UserOld currentUser = userOldRepository.findByIdAndIsDeletedFalse(id)
-           .orElseThrow(() -> new ResourceNotFoundException("Cannot find user: " + id));
+           .orElseThrow(() -> new ResourceNotFoundException("Cannot find user"));
        
        if (currentUser.getPositions() != null && currentUser.getPositions().stream()
            .anyMatch(p -> "POSITION_ADMIN".equals(p.getValue()))) {
