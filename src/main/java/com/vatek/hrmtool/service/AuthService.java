@@ -9,5 +9,4 @@ public interface AuthService {
     LoginResponse login(UserOld user, Authentication authentication);
     AuthJwtResponse refresh(String refreshToken);
     void logout(String userId);
-    boolean verifyUserStatus(String userId);
 }

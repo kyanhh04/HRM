@@ -55,14 +55,13 @@ public class AuthServiceImpl implements AuthService {
                 );
     }
     public void checkAndAssignDefaultProject(UserOld user) {
-        String DEFAULT_PROJECT_NAME = "Employee With No Project";
         boolean hasProject = projectOldRepository.existsByMembers(user);
 
         if (!hasProject) {
-            ProjectOld defaultProject = projectOldRepository.findByProjectName(DEFAULT_PROJECT_NAME);
+            ProjectOld defaultProject = projectOldRepository.findByProjectName("Employee With No Project");
             if (defaultProject == null) {
                 defaultProject = new ProjectOld();
-                defaultProject.setProjectName(DEFAULT_PROJECT_NAME);
+                defaultProject.setProjectName("Employee With No Project");
                 defaultProject.setCreatedBy(String.valueOf(user.getId()));
                 defaultProject = projectOldRepository.save(defaultProject);
             }
@@ -92,37 +91,20 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthJwtResponse refresh(String refreshToken) {
-        // Validate refresh token
         if (!jwtProvider.validateJwtToken(refreshToken)) {
             throw new IllegalArgumentException("Invalid or expired refresh token");
         }
-
-        // Get userId from refresh token
         String userId = jwtProvider.getUserIdFromJwtToken(refreshToken);
-
-        // Find user
         UserOld user = userOldRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        // Check if stored refresh token matches
         if (user.getRefreshToken() == null || !user.getRefreshToken().equals(refreshToken)) {
             throw new IllegalArgumentException("Refresh token doesn't match");
         }
-
-        // Get user positions
         List<String> positions = getPositions(user);
-
-        // Generate new access token (24 hours)
         String newAccessToken = jwtProvider.generateTokenFromUserIdAndRole(user.getId(), positions);
-
-        // Generate new refresh token (7 days)
         String newRefreshToken = jwtProvider.generateTokenFromUserIdAndRole(user.getId(), positions, 604800);
-
-        // Update user with new refresh token
         user.setRefreshToken(newRefreshToken);
         userOldRepository.save(user);
-
-        // Return response
         Long exp = jwtProvider.getRemainTimeFromJwtToken(newAccessToken);
         return new AuthJwtResponse(
                 newAccessToken,
@@ -139,17 +121,5 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         user.setRefreshToken(null);
         userOldRepository.save(user);
-    }
-
-    @Override
-    public boolean verifyUserStatus(String userId) {
-        UserOld user = userOldRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        
-        if (user.getIsDeleted() || user.getStatus() == null || 
-            user.getStatus().equals(StatusUser.DEACTIVATED.getValue())) {
-            return false;
-        }
-        return true;
     }
 }

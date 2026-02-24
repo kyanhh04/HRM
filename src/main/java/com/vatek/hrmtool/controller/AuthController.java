@@ -20,7 +20,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,82 +63,30 @@ public class AuthController {
 //        }
 //    }
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
-        try {
-            if (loginDto.getUsername() == null || loginDto.getUsername().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "Username is required"));
-            }
-            if (loginDto.getPassword() == null || loginDto.getPassword().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "Password is required"));
-            }
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
-            UserOld user = userOldRepository.findByUsernameOrEmail(loginDto.getUsername(), loginDto.getPassword());
-            LoginResponse loginResponse = authService.login(user, authentication);
-            return ResponseEntity.ok(loginResponse);
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid username or password"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
-        }
+    public ResponseEntity<?> login(@RequestBody LoginDto loginDto){
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
+        UserOld user = userOldRepository.findByUsernameOrEmail(loginDto.getUsername(), loginDto.getPassword());
+        LoginResponse loginResponse = authService.login(user, authentication);
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request) {
-        try {
-            if (request.getRefreshToken() == null || request.getRefreshToken().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "Refresh token is required"));
-            }
-            AuthJwtResponse authJwtResponse = authService.refresh(request.getRefreshToken());
-            return ResponseEntity.ok(authJwtResponse);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid or expired refresh token"));
+        if (request.getRefreshToken() == null || request.getRefreshToken().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Refresh token is required"));
         }
+        AuthJwtResponse authJwtResponse = authService.refresh(request.getRefreshToken());
+        return ResponseEntity.ok(authJwtResponse);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
-        try {
-            String userId = getCurrentUserId();
-            authService.logout(userId);
-            return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Logout failed: " + e.getMessage()));
-        }
-    }
-
-    @GetMapping("/verify")
-    public ResponseEntity<?> verifyToken() {
-        try {
-            String userId = getCurrentUserId();
-            boolean isActive = authService.verifyUserStatus(userId);
-            if (!isActive) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("message", "User account is deactivated or deleted", "active", false));
-            }
-            return ResponseEntity.ok(Map.of("message", "User is active", "active", true, "userId", userId));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Token verification failed: " + e.getMessage(), "active", false));
-        }
-    }
-
-    private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new IllegalStateException("User is not authenticated");
-        }
         UserOldPrinciple userPrinciple = (UserOldPrinciple) authentication.getPrincipal();
-        return userPrinciple.getId();
+        String userId = userPrinciple.getId();
+        authService.logout(userId);
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
+
 }
