@@ -27,10 +27,4 @@ public class UserSignUpResponse {
     private LocalDate onboardingDate;
     
     private String status;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Instant createdTime;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Instant modifiedTime;
 }

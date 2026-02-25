@@ -1,5 +1,6 @@
 package com.vatek.hrmtool.dto.UserDto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,9 +15,11 @@ public class UserResponseDto {
     private String id;
     private String fullName;
     private String email;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate onboardingDate;
     private String phone;
     private String name;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
     private UserMentorDto onboardingMentor;
     private ConfigDto level;

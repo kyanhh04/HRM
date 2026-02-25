@@ -4,11 +4,8 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
-    <includeAll path="liquibase/changelog/2025/10"/>
-
     <!--    init master data-->
-
-    <includeAll path="liquibase/initdata"/>
+    <includeAll path="liquibase/changelog.2026.02"/>
 
 </databaseChangeLog>
 

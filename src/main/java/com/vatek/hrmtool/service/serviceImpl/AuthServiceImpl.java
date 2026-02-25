@@ -10,12 +10,16 @@ import com.vatek.hrmtool.jwt.JwtProvider;
 import com.vatek.hrmtool.respository.old.UserOldRepository;
 import com.vatek.hrmtool.respository.old.ProjectOldRepository;
 import com.vatek.hrmtool.service.AuthService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -34,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("User cannot be null");
         }
         if(user.getStatus() == null || user.getStatus().equals(StatusUser.INACTIVE.getValue())){
-            user.setStatus(StatusUser.INACTIVE.getValue());
+            user.setStatus(StatusUser.ACTIVE.getValue());
             userOldRepository.save(user);
         }
         if(user.getStatus().equals(StatusUser.DEACTIVATED.getValue())){
@@ -60,10 +64,7 @@ public class AuthServiceImpl implements AuthService {
         if (!hasProject) {
             ProjectOld defaultProject = projectOldRepository.findByProjectName("Employee With No Project");
             if (defaultProject == null) {
-                defaultProject = new ProjectOld();
-                defaultProject.setProjectName("Employee With No Project");
-                defaultProject.setCreatedBy(String.valueOf(user.getId()));
-                defaultProject = projectOldRepository.save(defaultProject);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Project not found");
             }
             List<UserOld> members = defaultProject.getMembers();
             if (members == null) {

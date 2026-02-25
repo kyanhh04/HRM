@@ -9,7 +9,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjectEmployeeDto {
-    private List<String> members;
+public class ProjectPaginationResponse {
+    private List<GetListProjectDto> data;
+    private long total;
+    private long paginateTotal;
 }
 

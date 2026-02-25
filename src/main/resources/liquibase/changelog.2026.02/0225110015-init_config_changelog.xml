@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!-- Insert LEVEL configs -->
+    <changeSet id="insert-config-level-intern" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'LEVEL' AND `value` = 'INTERN'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert LEAD level config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'LEVEL', 'INTERN');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-level-fresher" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'LEVEL' AND `value` = 'FRESHER'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert LEAD level config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'LEVEL', 'FRESHER');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-level-junior" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'LEVEL' AND `value` = 'JUNIOR'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert JUNIOR level config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'LEVEL', 'JUNIOR');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-level-middle" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'LEVEL' AND `value` = 'MIDDLE'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert MIDDLE level config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'LEVEL', 'MIDDLE');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-level-senior" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'LEVEL' AND `value` = 'SENIOR'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert SENIOR level config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'LEVEL', 'SENIOR');
+        </sql>
+    </changeSet>
+
+    <!-- Insert STATUS configs -->
+    <changeSet id="insert-config-status-pending" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'STATUS' AND `value` = 'Pending'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert Pending status config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'STATUS', 'Pending');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-status-rejected" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'STATUS' AND `value` = 'Rejected'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert Rejected status config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'STATUS', 'Rejected');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-status-accepted" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'STATUS' AND `value` = 'Accepted'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert Accepted status config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'STATUS', 'Accepted');
+        </sql>
+    </changeSet>
+
+    <!-- Insert POSITION configs -->
+    <changeSet id="insert-config-position-fe" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'POSITION' AND `value` = 'POSITION_FE'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert POSITION_FE position config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'POSITION', 'POSITION_FE');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-position-be" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'POSITION' AND `value` = 'POSITION_BE'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert POSITION_BE position config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'POSITION', 'POSITION_BE');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-position-tester" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'POSITION' AND `value` = 'POSITION_TESTER'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert POSITION_TESTER position config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'POSITION', 'POSITION_TESTER');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-position-pm" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'POSITION' AND `value` = 'POSITION_PM'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert POSITION_PM position config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'POSITION', 'POSITION_PM');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-position-hr" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'POSITION' AND `value` = 'POSITION_HR'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert POSITION_HR position config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'POSITION', 'POSITION_HR');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-position-admin" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'POSITION' AND `value` = 'POSITION_ADMIN'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert POSITION_ADMIN position config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'POSITION', 'POSITION_ADMIN');
+        </sql>
+    </changeSet>
+
+    <!-- Insert WORKINGTYPE configs -->
+    <changeSet id="insert-config-workingtype-normal" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'WORKINGTYPE' AND `value` = 'Normal working hours'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert Normal working hours working type config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'WORKINGTYPE', 'Normal working hours');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-workingtype-ot" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'WORKINGTYPE' AND `value` = 'Overtime(OT)'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert Overtime(OT) working type config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'WORKINGTYPE', 'Overtime(OT)');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-config-workingtype-bonus" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="configs"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM configs WHERE `key` = 'WORKINGTYPE' AND `value` = 'Bonus'
+            </sqlCheck>
+        </preConditions>
+        <comment>Insert Bonus working type config</comment>
+        <sql>
+            INSERT INTO configs (id, created_time, created_by, `key`, `value`)
+            VALUES (UUID(), CURRENT_TIMESTAMP, 'system', 'WORKINGTYPE', 'Bonus');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

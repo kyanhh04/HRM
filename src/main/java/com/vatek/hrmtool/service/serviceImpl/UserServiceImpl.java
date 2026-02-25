@@ -17,6 +17,9 @@
  import com.vatek.hrmtool.entity.Image;
  import com.vatek.hrmtool.entity.ProjectOld;
  import com.vatek.hrmtool.entity.UserOld;
+ import com.vatek.hrmtool.enumeration.RequestNotificationType;
+ import com.vatek.hrmtool.notifications.MailNotificationsParam;
+ import com.vatek.hrmtool.notifications.MailOptions;
  import com.vatek.hrmtool.respository.old.ConfigRepository;
  import com.vatek.hrmtool.respository.old.ProjectOldRepository;
  import com.vatek.hrmtool.respository.old.UserOldRepository;
@@ -31,6 +34,7 @@
  import org.springframework.http.HttpStatus;
  import org.springframework.security.crypto.password.PasswordEncoder;
  import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
  import org.springframework.web.multipart.MultipartFile;
  import org.springframework.web.server.ResponseStatusException;
  import com.vatek.hrmtool.jwt.JwtProvider;
@@ -39,6 +43,7 @@
  import java.time.LocalDateTime;
  import java.util.ArrayList;
  import java.util.List;
+ import java.util.UUID;
  import java.util.stream.Collectors;
 
  @Service
@@ -62,16 +67,20 @@
   @Autowired
   private JwtProvider jwtProvider;
 
+  @Autowired
+  private NotificationsService notificationsService;
 
+  private static final String DEFAULT_PASSWORD = "1]Pz+Ei0qPPM7G)z";
 
+  @Transactional
    public UserOld create(CreateUserRequest request) {
     boolean existingByUsername = userOldRepository.findByUsername(request.getUsername()).isPresent();
     boolean existingByEmail = userOldRepository.findByEmail(request.getEmail()).isPresent();
     if (existingByUsername || existingByEmail) {
      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username or email already exists");
     }
-    UserOld onboardingMentor = userOldRepository.findById(request.getOnboardingMentor()).orElseThrow(() -> new ResourceNotFoundException("Cannot find user with id"));
-    String hashedPassword = passwordEncoder.encode(request.getPassword());
+    UserOld onboardingMentor = userOldRepository.findById(request.getOnboardingMentor()).orElse(null);
+    String hashedPassword = passwordEncoder.encode(DEFAULT_PASSWORD);
     String[] nameParts = request.getFullName().split(" ");
     String name = nameParts[nameParts.length - 1];
     UserOld newUser = new UserOld();
@@ -96,6 +105,17 @@
         List<Config> positions = configRepository.findAllById(request.getPositions());
         newUser.setPositions(positions);
     }
+
+    MailNotificationsParam param = new MailNotificationsParam();
+    param.setReceivers(new String[] {request.getEmail()});
+    param.setUsername(newUser.getUsername());
+    param.setPassword(DEFAULT_PASSWORD);
+    param.setFullName(newUser.getFullName());
+    param.setNotificationsType(RequestNotificationType.NEW_ACCOUNT);
+
+    MailOptions mailOptions = notificationsService.handleParseMailOption(param);
+    notificationsService.sendMail(mailOptions);
+
     return userOldRepository.save(newUser);
    }
 //     @Autowired
@@ -520,6 +540,7 @@
                }
            }
        }
+       
        currentUser.setIsDeleted(true);
        return userOldRepository.save(currentUser);
    }
