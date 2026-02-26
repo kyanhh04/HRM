@@ -20,47 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class ConfigServiceImpl implements ConfigService, InitializingBean {
+public class ConfigServiceImpl implements ConfigService {
     @Autowired
     private ConfigRepository configRepository;
-    @Override
-    public void afterPropertiesSet () throws Exception {
-        initConfigs();
-    }
-    public void initConfigs(){
-        if(configRepository.countByKey(ConfigKey.LEVEL.getValue()) == 0){
-            Level[] levels = Level.values();
-            List<Config> levelConfigs = mapValuesByKey(ConfigKey.LEVEL.getValue(), Arrays.stream(levels).map(Level::getValue).toArray(String[]::new));
-            configRepository.saveAll(levelConfigs);
-        }
-        if(configRepository.countByKey(ConfigKey.STATUS.getValue()) == 0){
-            TimesheetStatus[] statuses = TimesheetStatus.values();
-            List<Config> statusConfigs = mapValuesByKey(ConfigKey.STATUS.getValue(), Arrays.stream(statuses).map(TimesheetStatus::getValue).toArray(String[]::new));
-            configRepository.saveAll(statusConfigs);
-        }
-        if(configRepository.countByKey(ConfigKey.POSITION.getValue()) == 0){
-            Position[] positions = Position.values();
-            List<Config> positionConfigs = mapValuesByKey(ConfigKey.POSITION.getValue(), Arrays.stream(positions).map(Position::getValue).toArray(String[]::new));
-            configRepository.saveAll(positionConfigs);
-        }
-        if(configRepository.countByKey(ConfigKey.WORKINGTYPE.getValue()) == 0){
-            WorkingType[] workingTypes = WorkingType.values();
-            List<Config> workingTypeConfigs = mapValuesByKey(ConfigKey.WORKINGTYPE.getValue(),Arrays.stream(workingTypes).map(WorkingType::getType).toArray(String[]::new));
-            configRepository.saveAll(workingTypeConfigs);
-        }
-    }
-    public List<Config> mapValuesByKey(String key, String[] values){
-        List<Config> configs = new ArrayList<>();
-        for(String value : values){
-            Config config = new Config();
-            config.setKey(key);
-            config.setValue(value);
-            config.setCreatedBy("0");
-            config.setModifiedBy("0");
-            configs.add(config);
-        }
-        return configs;
-    }
 
     public List<Config> findAll(GetConfigDto param){
         Pageable pageable = PageRequest.of(param.getOffset() / param.getLimit(), param.getLimit());

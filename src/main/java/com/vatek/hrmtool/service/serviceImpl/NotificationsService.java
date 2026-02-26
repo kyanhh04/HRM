@@ -4,6 +4,7 @@ import com.vatek.hrmtool.notifications.DateRangeInfo;
 import com.vatek.hrmtool.notifications.MailNotificationsParam;
 import com.vatek.hrmtool.notifications.MailOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,6 +27,8 @@ public class NotificationsService {
 
     @Autowired
     private JavaMailSender javaMailSender;
+    @Autowired
+    private Environment env;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public void sendMail(MailOptions mailOptions) {
@@ -69,7 +72,7 @@ public class NotificationsService {
     public MailOptions handleParseMailOption(MailNotificationsParam param) {
         MailOptions mailOptions = new MailOptions();
         mailOptions.setTo(Arrays.asList(param.getReceivers()));
-        mailOptions.setFrom(NotificationMessages.NOTIFICATIONS_FROM_MAIL);
+        mailOptions.setFrom(env.getProperty("notification.from.mail"));
         DateRangeInfo dateRange = formatDateRange(param.getDayFrom(), param.getDayTo());
 
         switch (param.getNotificationsType()) {
