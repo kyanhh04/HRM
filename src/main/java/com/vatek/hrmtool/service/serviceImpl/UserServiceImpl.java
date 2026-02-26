@@ -79,7 +79,7 @@
     if (existingByUsername || existingByEmail) {
      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username or email already exists");
     }
-    UserOld onboardingMentor = userOldRepository.findById(request.getOnboardingMentor()).orElse(null);
+
     String hashedPassword = passwordEncoder.encode(DEFAULT_PASSWORD);
     String[] nameParts = request.getFullName().split(" ");
     String name = nameParts[nameParts.length - 1];
@@ -89,14 +89,17 @@
     newUser.setFullName(request.getFullName());
     newUser.setName(name);
     newUser.setPasswordHash(hashedPassword);
-    newUser.setCreatedBy("0");
+    newUser.setCreatedBy("admin");
     newUser.setDateCreated(LocalDateTime.now());
     newUser.setAddress(request.getAddress());
     newUser.setDateOfBirth(request.getDateOfBirth());
     newUser.setOnboardingDate(request.getOnboardingDate());
     newUser.setPhone(request.getPhone());
     newUser.setCitizenID(request.getCitizenID());
-    newUser.setOnboardingMentor(onboardingMentor);
+    if (request.getOnboardingMentor() != null && !request.getOnboardingMentor().isEmpty()) {
+        userOldRepository.findById(request.getOnboardingMentor()).ifPresent(newUser::setOnboardingMentor);
+    }
+
     if(request.getLevelId() != null && !request.getLevelId().isEmpty()){
         configRepository.findById(request.getLevelId()).ifPresent(newUser::setLevel);
     }
