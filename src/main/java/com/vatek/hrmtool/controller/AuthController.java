@@ -60,7 +60,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto){
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
-        UserOld user = userOldRepository.findByUsernameOrEmail(loginDto.getUsername(), loginDto.getPassword());
+        UserOld user = userOldRepository.findByUsernameOrEmailAndIsDeletedFalse(loginDto.getUsername(), loginDto.getUsername());
         LoginResponse loginResponse = authService.login(user, authentication);
         return ResponseEntity.ok(loginResponse);
     }

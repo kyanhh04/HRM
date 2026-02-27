@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,10 +40,8 @@ public class ProjectController {
     }
 
     @GetMapping("/get-pm-project")
-    public ResponseEntity<ProjectPaginationResponse> getPmProject() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserOldPrinciple userOldPrinciple = (UserOldPrinciple) authentication.getPrincipal();
-        String userId = userOldPrinciple.getId();
+    public ResponseEntity<ProjectPaginationResponse> getPmProject(@AuthenticationPrincipal UserOldPrinciple userPrinciple) {
+        String userId = userPrinciple.getId();
         return ResponseEntity.ok(projectService.getPmProjects(userId));
     }
 
@@ -53,10 +52,8 @@ public class ProjectController {
     }
 
     @GetMapping("/get-user-project")
-    public ResponseEntity<ProjectPaginationResponse> getUserProject() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserOldPrinciple userOldPrinciple = (UserOldPrinciple) authentication.getPrincipal();
-        String userId = userOldPrinciple.getId();
+    public ResponseEntity<ProjectPaginationResponse> getUserProject(@AuthenticationPrincipal UserOldPrinciple userPrinciple) {
+        String userId = userPrinciple.getId();
         return ResponseEntity.ok(projectService.getUserProjects(userId));
     }
 

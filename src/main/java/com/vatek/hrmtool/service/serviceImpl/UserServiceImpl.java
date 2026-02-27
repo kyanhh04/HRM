@@ -1,13 +1,7 @@
  package com.vatek.hrmtool.service.serviceImpl;
 
- import com.vatek.hrmtool.dto.UserDto.CreateUserRequest;
- import com.vatek.hrmtool.dto.UserDto.GetUsersDto;
- import com.vatek.hrmtool.dto.UserDto.UpdatePasswordDto;
- import com.vatek.hrmtool.dto.UserDto.UpdateUserDto;
- import com.vatek.hrmtool.dto.UserDto.ResetPassword;
- import com.vatek.hrmtool.dto.UserDto.UserPaginationResponse;
- import com.vatek.hrmtool.dto.UserDto.UserResponseDto;
-// import com.vatek.hrmtool.dto.UserDto.UserUpdateDto;
+ import com.vatek.hrmtool.dto.UserDto.*;
+ // import com.vatek.hrmtool.dto.UserDto.UserUpdateDto;
 // import com.vatek.hrmtool.entity.neww.UserEntity;
 // import com.vatek.hrmtool.entity.PositionEntity;
 // import com.vatek.hrmtool.respository.RoleRepository;
@@ -18,11 +12,14 @@
  import com.vatek.hrmtool.entity.ProjectOld;
  import com.vatek.hrmtool.entity.UserOld;
  import com.vatek.hrmtool.enumeration.RequestNotificationType;
+ import com.vatek.hrmtool.enumeration.StatusUser;
  import com.vatek.hrmtool.notifications.MailNotificationsParam;
  import com.vatek.hrmtool.notifications.MailOptions;
  import com.vatek.hrmtool.respository.old.ConfigRepository;
  import com.vatek.hrmtool.respository.old.ProjectOldRepository;
  import com.vatek.hrmtool.respository.old.UserOldRepository;
+ import com.vatek.hrmtool.service.MailService;
+ import com.vatek.hrmtool.service.ProjectService;
  import com.vatek.hrmtool.service.UserService;
  import com.vatek.hrmtool.service.ImageService;
  import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +29,7 @@
  import org.springframework.data.domain.Sort;
  import org.springframework.data.rest.webmvc.ResourceNotFoundException;
  import org.springframework.http.HttpStatus;
+ import org.springframework.security.core.Authentication;
  import org.springframework.security.crypto.password.PasswordEncoder;
  import org.springframework.stereotype.Service;
  import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +41,6 @@
  import java.time.LocalDateTime;
  import java.util.ArrayList;
  import java.util.List;
- import java.util.UUID;
  import java.util.stream.Collectors;
 
  @Service
@@ -69,6 +66,9 @@
 
   @Autowired
   private NotificationsService notificationsService;
+
+  @Autowired
+  private MailService mailService;
 
   private static final String DEFAULT_PASSWORD = "1]Pz+Ei0qPPM7G)z";
 
@@ -454,7 +454,7 @@
        return mapToUserResponseDto(user);
    }
 
-   public String changeAvatar(String userId, MultipartFile file){
+     public String changeAvatar(String userId, MultipartFile file){
        UserOld user = userOldRepository.findByIdAndIsDeletedFalse(userId)
            .orElseThrow(() -> new ResourceNotFoundException("Cannot find user with id " + userId));
        Image image = imageService.uploadAndCreate(file, userId);
@@ -548,7 +548,56 @@
        return userOldRepository.save(currentUser);
    }
 
-   public List<UserResponseDto> getBirthday() {
+   @Override
+   @Transactional
+   public UserResponseDto offboarding(String id) {
+       UserOld currentUser = userOldRepository.findByIdAndIsDeletedFalse(id)
+               .orElseThrow(() -> new ResourceNotFoundException("Cannot find user with id " + id));
+
+       // Don't allow offboarding admin accounts
+       if (currentUser.getPositions() != null && currentUser.getPositions().stream()
+               .anyMatch(p -> "POSITION_ADMIN".equals(p.getValue()))) {
+           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot offboard admin account");
+       }
+
+       // Find projects where user is manager or member
+       List<ProjectOld> projects = projectOldRepository.findByUserAsManagerOrMember(id);
+       if (projects != null) {
+           for (ProjectOld project : projects) {
+               if (project.getIsDeleted() != null && project.getIsDeleted()) continue;
+
+               if (project.getMembers() != null && !project.getMembers().isEmpty()) {
+                   boolean removed = project.getMembers().removeIf(m -> id.equals(m.getId()));
+                   if (removed) {
+                       projectOldRepository.save(project);
+                   }
+               }
+           }
+       }
+
+       currentUser.setStatus(StatusUser.DEACTIVATED.getValue());
+       return mapToUserResponseDto(userOldRepository.save(currentUser));
+   }
+
+     @Override
+     public void sendEmailForgotPassword(String email) {
+         UserOld user = userOldRepository.findByEmailAndIsDeletedFalse(email)
+             .orElseThrow(() -> new ResourceNotFoundException("Cannot find user with email " + email));
+
+         String token = jwtProvider.generateToken(user.getUsername(), user.getId());
+         String replacedHtml = mailService.forgotPasswordTemplate(user.getFullName(), token);
+         MailNotificationsParam param = new MailNotificationsParam();
+         param.setReceivers(new String[] {user.getEmail()});
+         param.setUsername(user.getUsername());
+         param.setFullName(user.getFullName());
+         param.setReplacedHtml(replacedHtml);
+         param.setNotificationsType(RequestNotificationType.FORGOT_PASSWORD);
+
+         MailOptions mailOptions = notificationsService.handleParseMailOption(param);
+         notificationsService.sendMail(mailOptions);
+     }
+
+     public List<UserResponseDto> getBirthday() {
        int today = LocalDate.now().getDayOfMonth();
        int currentMonth = LocalDate.now().getMonthValue();
        List<UserOld> users = userOldRepository.findAll().stream()

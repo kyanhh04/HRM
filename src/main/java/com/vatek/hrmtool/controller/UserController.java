@@ -1,15 +1,7 @@
 package com.vatek.hrmtool.controller;
 
 
-import com.vatek.hrmtool.dto.UserDto.CreateUserRequest;
-import com.vatek.hrmtool.dto.UserDto.EmployeeDto;
-import com.vatek.hrmtool.dto.UserDto.GetUsersDto;
-import com.vatek.hrmtool.dto.UserDto.UpdatePasswordDto;
-import com.vatek.hrmtool.dto.UserDto.UpdateUserDto;
-import com.vatek.hrmtool.dto.UserDto.ResetPassword;
-import com.vatek.hrmtool.dto.UserDto.UserPaginationResponse;
-import com.vatek.hrmtool.dto.UserDto.UserResponseDto;
-import com.vatek.hrmtool.dto.UserDto.UserSignUpResponse;
+import com.vatek.hrmtool.dto.UserDto.*;
 //import com.vatek.hrmtool.dto.UserDto.UserUpdateDto;
 //import com.vatek.hrmtool.entity.neww.UserEntity;
 //import com.vatek.hrmtool.enumeration.SortFieldName;
@@ -27,7 +19,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -66,6 +60,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR')")
     @GetMapping("/get-onboarding-mentor")
     public ResponseEntity<UserPaginationResponse> findOnboardingMentor(
         @RequestParam(required = false, defaultValue = "0") Integer offset,
@@ -81,9 +76,7 @@ public class UserController {
     }
 
     @GetMapping("/get-own-profile")
-    public ResponseEntity<UserResponseDto> findOwnProfile() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserOldPrinciple userPrinciple = (UserOldPrinciple) authentication.getPrincipal();
+    public ResponseEntity<UserResponseDto> findOwnProfile(@AuthenticationPrincipal UserOldPrinciple userPrinciple) {
         String userId = userPrinciple.getId();
         UserResponseDto user = userService.findOneWithoutAuth(userId);
         return ResponseEntity.ok(user);
@@ -91,9 +84,7 @@ public class UserController {
     }
 
     @GetMapping("/user-avatar")
-    public ResponseEntity<?> getUserAvatar() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserOldPrinciple userPrinciple = (UserOldPrinciple) authentication.getPrincipal();
+    public ResponseEntity<String> getUserAvatar(@AuthenticationPrincipal UserOldPrinciple userPrinciple) {
         String userId = userPrinciple.getId();
         UserResponseDto userData = userService.findOneWithoutAuth(userId);
         String avatarSrc = userData.getAvatar() != null ? userData.getAvatar().getSrc() : null;
@@ -123,18 +114,14 @@ public class UserController {
     }
 
     @PatchMapping("/change-password")
-    public ResponseEntity<UserResponseDto> changePassword(@RequestBody @Valid UpdatePasswordDto updatePasswordDto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserOldPrinciple userPrinciple = (UserOldPrinciple) authentication.getPrincipal();
+    public ResponseEntity<UserResponseDto> changePassword(@RequestBody @Valid UpdatePasswordDto updatePasswordDto, @AuthenticationPrincipal UserOldPrinciple userPrinciple) {
         String userId = userPrinciple.getId();
         UserResponseDto responseDto = userService.changePassword(userId, updatePasswordDto);
         return ResponseEntity.ok(responseDto);
     }
 
     @PatchMapping("/update-profile")
-    public ResponseEntity<UserResponseDto> updateProfile(@RequestBody @Valid UpdateUserDto updateUserDto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserOldPrinciple userPrinciple = (UserOldPrinciple) authentication.getPrincipal();
+    public ResponseEntity<UserResponseDto> updateProfile(@RequestBody @Valid UpdateUserDto updateUserDto, @AuthenticationPrincipal UserOldPrinciple userPrinciple) {
         String userId = userPrinciple.getId();
         UserResponseDto responseDto = userService.update(userId, updateUserDto);
         return ResponseEntity.ok(responseDto);
@@ -158,10 +145,38 @@ public class UserController {
     }
 
     @PatchMapping("/reset_password")
-    public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPassword resetPassword) {
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPassword resetPassword) {
         userService.resetPassword(resetPassword);
-        return ResponseEntity.ok("Password reset successfully");
+        return ResponseEntity.noContent().build();
     }
+
+    @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR')")
+    @PatchMapping("/offboarding/{id}")
+    public ResponseEntity<UserResponseDto> offboarding(@PathVariable String id) {
+        return ResponseEntity.ok(userService.offboarding(id));
+    }
+
+    @PostMapping("forgot_password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid PayloadForgotPassword payload) {
+        userService.sendEmailForgotPassword(payload.getEmail());
+        return ResponseEntity.noContent().build();
+    }
+
+    private UserSignUpResponse mapToSignUpResponse(UserOld user) {
+        UserSignUpResponse response = new UserSignUpResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setFullName(user.getFullName());
+        response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
+        response.setCitizenID(user.getCitizenID());
+        response.setAddress(user.getAddress());
+        response.setDateOfBirth(user.getDateOfBirth());
+        response.setOnboardingDate(user.getOnboardingDate());
+        response.setStatus(user.getStatus());
+        return response;
+    }
+
     // // Code cũ - dùng Role ADMIN
     // @PreAuthorize("hasRole('ADMIN')")
     // Code mới - dùng Position POSITION_ADMIN
@@ -187,9 +202,9 @@ public class UserController {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
          // Code cũ - dùng UserPrinciple
         // UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
-        // Code mới - dùng UserOldPrinciple
-//        UserOldPrinciple userOldPrinciple = (UserOldPrinciple) authentication.getPrincipal();
-//        Long userId = userOldPrinciple.getId();
+        // Code mới - dùng userPrinciple
+//        userPrinciple userPrinciple = (userPrinciple) authentication.getPrincipal();
+//        Long userId = userPrinciple.getId();
 //        userService.changePassword(userId, updatePasswordDto);
 //        return ResponseEntity.ok("Đổi mật khẩu thành công");
 //    }
@@ -234,19 +249,4 @@ public class UserController {
 //        Page<UserEntity> allEmployee = userService.listEmployee(keyword, direction, sortBy.getField(), page, size);
 //        return ResponseEntity.ok(allEmployee);
 //    }
-
-    private UserSignUpResponse mapToSignUpResponse(UserOld user) {
-        UserSignUpResponse response = new UserSignUpResponse();
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setFullName(user.getFullName());
-        response.setEmail(user.getEmail());
-        response.setPhone(user.getPhone());
-        response.setCitizenID(user.getCitizenID());
-        response.setAddress(user.getAddress());
-        response.setDateOfBirth(user.getDateOfBirth());
-        response.setOnboardingDate(user.getOnboardingDate());
-        response.setStatus(user.getStatus());
-        return response;
-    }
 }
