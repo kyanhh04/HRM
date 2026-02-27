@@ -19,14 +19,4 @@ public class CommonBeanConfig {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
         return modelMapper;
     }
-
-    @Bean
-    public ObjectMapper objectMapper() {
-        var om = new ObjectMapper();
-        om.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-        om.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
-        om.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        return om;
-    }
 }
