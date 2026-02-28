@@ -95,7 +95,7 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/auth/activate-email/**", "/", "/user/**").permitAll()
+                        .requestMatchers("/auth/**", "/auth/activate-email/**", "/", "/user/forgot_password", "/user/reset_password").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/**").permitAll()
                         .anyRequest().authenticated()
                 );

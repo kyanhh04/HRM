@@ -35,6 +35,9 @@ public class JwtProvider {
     @Value("${hrm.app.refreshTokenExpiration}")
     private int refreshTokenExpiration;
 
+    @Value("${hrm.app.emailLinkExpiration:7200}")
+    private int emailLinkExpiration;
+
     public String generateRefreshToken(Authentication authentication){
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserOldPrinciple) {
@@ -76,6 +79,33 @@ public class JwtProvider {
                 .signWith(key)
                 .compact();
     }
+
+    /**
+     * Generate token for email verification or password reset links
+     * @param username the user's username
+     * @param userId the user's ID
+     * @return JWT token with email link expiration
+     */
+    public String generateToken(String username, String userId) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+            Map<String, ?> claims = Map.of(
+                    "username", username,
+                    "userId", userId
+            );
+            return Jwts
+                    .builder()
+                    .claims(claims)
+                    .issuedAt(DateUtils.convertInstantToDate(DateUtils.getInstantNow()))
+                    .expiration(DateUtils.convertInstantToDate(Instant.now().plus(emailLinkExpiration, ChronoUnit.SECONDS)))
+                    .signWith(key)
+                    .compact();
+        } catch (Exception e) {
+            log.error("Error generating email token: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate email token", e);
+        }
+    }
+
     public String getUserIdFromJwtToken(String token) {
         return getSignedClaims(token).getPayload().get("userId",String.class);
     }

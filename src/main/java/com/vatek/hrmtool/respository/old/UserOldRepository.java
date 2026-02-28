@@ -14,7 +14,8 @@ import java.util.Optional;
 public interface UserOldRepository extends JpaRepository<UserOld, String>, JpaSpecificationExecutor<UserOld> {
     Optional<UserOld> findByEmail(String email);
     Optional<UserOld> findByUsername(String username);
-    UserOld findByUsernameOrEmail(String username, String email);
+    UserOld findByUsernameOrEmailAndIsDeletedFalse(String username, String email);
+    Optional<UserOld> findByEmailAndIsDeletedFalse(String email);
     Optional<UserOld> findByIdAndIsDeletedFalse(String id);
     long countByIsDeletedFalse();
     @Query("SELECT DISTINCT u FROM UserOld u " +
