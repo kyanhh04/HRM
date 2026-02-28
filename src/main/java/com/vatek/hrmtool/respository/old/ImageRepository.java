@@ -1,4 +1,4 @@
-package com.vatek.hrmtool.respository;
+package com.vatek.hrmtool.respository.old;
 
 import com.vatek.hrmtool.entity.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
