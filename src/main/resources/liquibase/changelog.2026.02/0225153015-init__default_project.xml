@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!-- Insert Default Project -->
+    <changeSet id="init-default-project" author="phongtv">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="projects_old"/>
+            <tableExists tableName="users_old"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM projects_old WHERE project_name = 'Default Project'
+            </sqlCheck>
+        </preConditions>
+        <comment>Create a default project named 'Default Project' and assign admin user as project manager</comment>
+        <sql>
+            INSERT INTO projects_old (
+                id,
+                created_time,
+                created_by,
+                project_name,
+                project_manager_id,
+                state,
+                start_date,
+                is_deleted,
+                end_date,
+                client_name
+            ) VALUES (
+                UUID(),
+                CURRENT_TIMESTAMP,
+                'system',
+                'Employee with no Project',
+                (SELECT id FROM users_old WHERE email = 'admin@vatek.asia' LIMIT 1),
+                'INCOMING',
+                CURRENT_TIMESTAMP,
+                FALSE,
+                NULL,
+                'Internal'
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>

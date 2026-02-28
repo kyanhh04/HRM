@@ -39,12 +39,16 @@ import java.util.*;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR')")
     @PostMapping("/sign-up")
     public ResponseEntity<UserSignUpResponse> createUser(@RequestBody CreateUserRequest userRequest) {
         UserOld user = userService.create(userRequest);
         UserSignUpResponse response = mapToSignUpResponse(user);
         return ResponseEntity.ok(response);
     }
+
+    @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR', 'POSITION_PM')")
     @GetMapping("/get-all-users")
     public ResponseEntity<UserPaginationResponse> getAllUsers(
         @RequestParam(required = false, defaultValue = "0") Integer offset,
@@ -61,6 +65,7 @@ public class UserController {
         UserPaginationResponse response = userService.findAll(params);
         return ResponseEntity.ok(response);
     }
+
     @GetMapping("/get-onboarding-mentor")
     public ResponseEntity<UserPaginationResponse> findOnboardingMentor(
         @RequestParam(required = false, defaultValue = "0") Integer offset,
@@ -74,6 +79,7 @@ public class UserController {
         return ResponseEntity.ok(response);
 
     }
+
     @GetMapping("/get-own-profile")
     public ResponseEntity<UserResponseDto> findOwnProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -83,6 +89,7 @@ public class UserController {
         return ResponseEntity.ok(user);
         
     }
+
     @GetMapping("/user-avatar")
     public ResponseEntity<?> getUserAvatar() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -92,12 +99,14 @@ public class UserController {
         String avatarSrc = userData.getAvatar() != null ? userData.getAvatar().getSrc() : null;
         return ResponseEntity.ok(avatarSrc);
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> findOne(@PathVariable String id) {
         UserResponseDto user = userService.findOneWithoutAuth(id);
         return ResponseEntity.ok(user);
         
     }
+
     @PostMapping(value = "/change-avatar/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> changeAvatar(@PathVariable String id, @RequestParam("avatar") MultipartFile file) {
         String avatarFileName = userService.changeAvatar(id, file);
@@ -105,12 +114,14 @@ public class UserController {
                 Map.of("userId", id,
                 "avatar", avatarFileName));
     }
-//    @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR')")
+
+    @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR')")
     @PatchMapping("/update-user/{id}")
     public ResponseEntity<UserResponseDto> updateUser(@PathVariable String id, @RequestBody @Valid UpdateUserDto updateUserDto) {
         UserResponseDto responseDto = userService.update(id, updateUserDto);
         return ResponseEntity.ok(responseDto);
     }
+
     @PatchMapping("/change-password")
     public ResponseEntity<UserResponseDto> changePassword(@RequestBody @Valid UpdatePasswordDto updatePasswordDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -119,6 +130,7 @@ public class UserController {
         UserResponseDto responseDto = userService.changePassword(userId, updatePasswordDto);
         return ResponseEntity.ok(responseDto);
     }
+
     @PatchMapping("/update-profile")
     public ResponseEntity<UserResponseDto> updateProfile(@RequestBody @Valid UpdateUserDto updateUserDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -127,6 +139,7 @@ public class UserController {
         UserResponseDto responseDto = userService.update(userId, updateUserDto);
         return ResponseEntity.ok(responseDto);
     }
+
     @PreAuthorize("hasAnyAuthority('POSITION_ADMIN', 'POSITION_HR')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> removeUser(@PathVariable String id) {
@@ -137,6 +150,7 @@ public class UserController {
             "username", deletedUser.getUsername()
         ));
     }
+
     @GetMapping("/get-birthday")
     public ResponseEntity<?> getBirthday() {
         List<UserResponseDto> users = userService.getBirthday();
@@ -233,8 +247,6 @@ public class UserController {
         response.setDateOfBirth(user.getDateOfBirth());
         response.setOnboardingDate(user.getOnboardingDate());
         response.setStatus(user.getStatus());
-        response.setCreatedTime(user.getCreatedTime());
-        response.setModifiedTime(user.getModifiedTime());
         return response;
     }
 }

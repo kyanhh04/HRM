@@ -1,45 +1,86 @@
-//package com.vatek.hrmtool.controller;
-//
-//import com.vatek.hrmtool.dto.ProjectDto.ApprovalProjectDto;
-//import com.vatek.hrmtool.dto.TimesheetDto.*;
-//import com.vatek.hrmtool.enumeration.TimesheetStatus;
-//import com.vatek.hrmtool.enumeration.WorkingType;
-//import com.vatek.hrmtool.service.TaskService;
-//import com.vatek.hrmtool.service.serviceImpl.ExportServiceImpl;
-//import com.vatek.hrmtool.service.serviceImpl.ReportServiceImpl;
-//import jakarta.validation.Valid;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.core.io.InputStreamResource;
-//import org.springframework.data.domain.Page;
-//import org.springframework.http.HttpHeaders;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.MediaType;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.prepost.PreAuthorize;
-//import org.springframework.web.bind.annotation.*;
-//
-//import java.io.ByteArrayInputStream;
-//import java.io.IOException;
-//import java.time.DayOfWeek;
-//import java.time.LocalDate;
-//import java.time.YearMonth;
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//@RestController
-//@RequestMapping("/timesheets")
-//public class TimeSheetController {
-//    @Autowired
-//    private ExportServiceImpl exportService;
-//    @Autowired
-//    private ReportServiceImpl reportService;
-//    @Autowired
-//    private TaskService taskService;
-//    @PostMapping("/create-timesheet")
-//    public ResponseEntity<?> createTask(@Valid @RequestBody CreateTaskDto createTaskDto){
-//        CreateTaskDto dto = taskService.createTask(createTaskDto);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-//    }
+package com.vatek.hrmtool.controller;
+
+import com.vatek.hrmtool.dto.TimesheetDto.*;
+import com.vatek.hrmtool.service.TimesheetService;
+import com.vatek.hrmtool.service.serviceImpl.UserOldPrinciple;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/timesheets")
+public class TimeSheetController {
+    // @Autowired
+    // private ExportServiceImpl exportService;
+    // @Autowired
+    // private ReportServiceImpl reportService;
+    // @Autowired
+    // private TaskService taskService;
+    @Autowired
+    private TimesheetService timesheetService;
+
+    @PostMapping("/create-timesheet")
+    public ResponseEntity<?> createTimesheet(@Valid @RequestBody CreateTaskDto createTaskDto) {
+        UserOldPrinciple userPrinciple = (UserOldPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = userPrinciple.getId();
+        TimesheetResponseDto result = timesheetService.createTimesheet(createTaskDto, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> remove(@PathVariable String id) {
+        return ResponseEntity.ok(timesheetService.deleteTimesheet(id));
+    }
+
+    @GetMapping("/get-timesheet-weekly-by-user")
+    public ResponseEntity<?> findTimesheetByWeekly(@Valid GetTimesheetWeeklyDto params) {
+        UserOldPrinciple userPrinciple = (UserOldPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userId = userPrinciple.getId();
+        return ResponseEntity.ok(timesheetService.findTimesheetByWeekly(userId, params));
+    }
+
+    @GetMapping("/get-timesheet-by-month")
+    public ResponseEntity<?> getTimesheetByMonth(@Valid GetTimesheetByDateDto params) {
+        UserOldPrinciple userPrinciple = (UserOldPrinciple) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(timesheetService.listTimesheetByMonth(userPrinciple, params));
+    }
+
+    @GetMapping("/export-timesheets-report")
+    public ResponseEntity<?> exportTimesheetsReport(@Valid ExportTimesheetReportDto params) throws IOException {
+        ByteArrayInputStream excelStream = timesheetService.exportTimesheetReport(params);
+        
+        LocalDate date = params.getDate();
+        int month = date.getMonthValue();
+        int year = date.getYear();
+        String fileName = String.format("reportTimeSheet-%d-%d.xlsx", year, month);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(excelStream));
+    }
+
+    @PatchMapping("/approval-timesheet")
+    public ResponseEntity<?> approvalTimesheet(@Valid @RequestBody ApprovalOrRejectTimesheetDto body) {
+        return ResponseEntity.ok(timesheetService.approvalTimesheetByPM(body.getIds()));
+    }
+
+    @PatchMapping("/reject-timesheet")
+    public ResponseEntity<?> rejectTimesheet(@Valid @RequestBody ApprovalOrRejectTimesheetDto body) {
+        return ResponseEntity.ok(timesheetService.rejectTimesheetByPM(body.getIds()));
+    }
+}
 //    @GetMapping("/user/{userId}/projects")
 //    public ResponseEntity<?> getProjectsOfUser(@PathVariable Long userId){
 //        List<ProjectOfUserDto> projectOfUserDto = taskService.getProjects(userId);

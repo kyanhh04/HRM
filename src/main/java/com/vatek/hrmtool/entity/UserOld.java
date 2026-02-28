@@ -1,7 +1,8 @@
 package com.vatek.hrmtool.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.vatek.hrmtool.entity.common.CommonEntity;
+import com.vatek.hrmtool.enumeration.StatusUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,12 +36,13 @@ public class UserOld extends CommonEntity {
     @Column
     private String phone;
 
-    @Column
+    @Column(name = "citizen_id")
     private String citizenID;
 
     @Column
     private LocalDateTime dateCreated;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @Column
     private LocalDate dateOfBirth;
 
@@ -63,6 +65,7 @@ public class UserOld extends CommonEntity {
     @JoinColumn(name = "onboarding_mentor_id")
     private UserOld onboardingMentor;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @Column
     private LocalDate onboardingDate;
 
@@ -76,6 +79,6 @@ public class UserOld extends CommonEntity {
     @Column
     private String refreshToken;
 
-    @Column
-    private String status = "INACTIVE";
+    @Column()
+    private String status = StatusUser.INACTIVE.getValue();
 }

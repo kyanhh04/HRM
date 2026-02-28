@@ -1,7 +1,7 @@
 package com.vatek.hrmtool.service.serviceImpl;
 
 import com.vatek.hrmtool.entity.Image;
-import com.vatek.hrmtool.respository.ImageRepository;
+import com.vatek.hrmtool.respository.old.ImageRepository;
 import com.vatek.hrmtool.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
